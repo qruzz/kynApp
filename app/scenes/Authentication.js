@@ -4,12 +4,14 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    TouchableOpacity
+    TouchableOpacity,
+    Platform
 } from 'react-native'
 import ViewContainer from '../components/ViewContainer'
 import Dashboard from './Dashboard'
 import { firebaseApp } from '../../index.ios.js'
 import { Actions } from 'react-native-router-flux'
+import { BleManager } from 'react-native-ble-plx'
 
 export default class Authentication extends Component {
     constructor(props) {
@@ -17,8 +19,60 @@ export default class Authentication extends Component {
 
         this.state = {
             email: '',
-            password: ''
+            password: '',
+            info: '',
+            values: {}
         }
+
+        this.manager = new BleManager()
+        // const uuid = [
+        // 	'75023A9074F94CCD95B0967E742282D0'
+        // ]
+    }
+
+    componentWillMount() {
+        // In ios, we need to wait for a state change before we can scan for devices
+        if (Platform.OS === 'ios') {
+            this.manager.onStateChange((state) => {
+                console.log('This is ios')
+                this.scanAndConnect()
+            })
+        } else {
+            this.scanAndConnect()
+        }
+    }
+
+
+
+    scanAndConnect() {
+        // Start to scan for devices
+        this.manager.startDeviceScan(null, null, (error, device) => {
+            this.setState({info: 'Scanning...'})
+            // NOTE: Debugging
+            console.log(this.state.info)
+            console.log(device);
+
+            if (error) {
+                console.log("ERROR_CODE: " + error.code)
+                console.log("ERROR_MESSAGE: " + error.message)
+            }
+
+            if (device.uuid === '9D0C0030-EF59-4E11-928C-DDAD1E82DBAB') {
+                this.setState({info: 'Connecting to device with uuid: ' + device.uuid})
+                this.manager.stopDeviceScan()
+                console.log(this.state.info)
+
+                this.manager.connectToDevice(device.uuid)
+            }
+
+            // var connection = this.manager.isDeviceConnected(device.uuid)
+            // console.log('Is device connected? ' + connection)
+
+            // Returns a JS Promise, that we can then handle 
+            this.manager.isDeviceConnected(device.uuid).then(function(result) {
+                console.log(result)
+            })
+        })
     }
 
     render() {

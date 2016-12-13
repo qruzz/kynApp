@@ -10,6 +10,7 @@ import Authentication from './app/scenes/Authentication'
 import {Actions, Scene, Router} from 'react-native-router-flux';
 import * as firebase from 'firebase'
 import RNRestart from 'react-native-restart'
+// import { BleManager } from 'react-native-ble-plx'
 
 const firebaseConfig = {
     apiKey: "AIzaSyBpBPio31QhKBmqJy_aT9xH0L7pFg9hlR8",
@@ -22,6 +23,11 @@ export default class kyn extends Component {
     constructor(props) {
         super(props)
 
+        // const manager = new BleManager()
+        // const uuid = '75023A9074F94CCD95B0967E742282D0'
+        //
+        // manager.startDeviceScan(uuid)
+        // console.log(manager)
     }
 
     render() {
