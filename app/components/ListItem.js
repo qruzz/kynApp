@@ -21,15 +21,17 @@ export default class ListItem extends Component {
         return (
             <View style={styles.cell}>
                 <Text style={styles.cellText}>{this.props.rowData.interest}</Text>
-                <TouchableHighlight style={styles.delete} onPress={this._deleteInterest.bind(this)}>
+                {/* <TouchableHighlight style={styles.delete} onPress={this._deleteInterest().bind(this)}>
                     <Icon name="ios-close" size={30} color='#B3B3B3' />
-                </TouchableHighlight>
+                </TouchableHighlight> */}
             </View>
         )
     }
 
-    _deleteInterest() {
-        this.itemsRef.remove(child.key)
+    _deleteInterest(itemsRef) {
+        // TODO: Implement the remove function, so that it only removes the chosen item
+        // this.itemsRef.remove()
+        // console.log(this.itemsRef.child(key))
     }
 }
 

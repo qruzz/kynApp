@@ -4,7 +4,6 @@ import {
     StyleSheet,
     Text,
     View,
-    NavigatorIOS,
     ListView,
     TouchableOpacity,
     TextInput

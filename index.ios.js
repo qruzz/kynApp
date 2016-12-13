@@ -1,21 +1,15 @@
-/**
-* Sample React Native App
-* https://github.com/facebook/react-native
-* @flow
-*/
-
 import React, { Component, PropTypes } from 'react'
 import {
     AppRegistry,
     StyleSheet,
     Text,
-    View,
-    NavigatorIOS
+    View
 } from 'react-native'
 import Dashboard from './app/scenes/Dashboard'
 import Authentication from './app/scenes/Authentication'
 import {Actions, Scene, Router} from 'react-native-router-flux';
 import * as firebase from 'firebase'
+import RNRestart from 'react-native-restart'
 
 const firebaseConfig = {
     apiKey: "AIzaSyBpBPio31QhKBmqJy_aT9xH0L7pFg9hlR8",
@@ -61,6 +55,8 @@ export default class kyn extends Component {
         firebaseApp.auth().signOut().then(function() {
             // Succesfuly logged out
             Actions.pop()
+            // HACK: Restarting the app after signOut to reset all the states
+            RNRestart.Restart()
             // NOTE: Debugging
             console.log('Signed out')
         }, function(error) {
