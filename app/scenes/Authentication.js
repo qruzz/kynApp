@@ -20,58 +20,80 @@ export default class Authentication extends Component {
         this.state = {
             email: '',
             password: '',
-            info: '',
-            values: {}
+            info: ''
         }
 
+        // Instansiate a new Bluetooth manager
         this.manager = new BleManager()
-        // const uuid = [
-        // 	'75023A9074F94CCD95B0967E742282D0'
-        // ]
     }
 
     componentWillMount() {
         // In ios, we need to wait for a state change before we can scan for devices
         if (Platform.OS === 'ios') {
+            // If the platform is ios, we wait for the state to change before scanning
             this.manager.onStateChange((state) => {
-                console.log('This is ios')
                 this.scanAndConnect()
             })
         } else {
+            // In Android, we can just start the scan
             this.scanAndConnect()
         }
     }
 
+    writeInterests() {
+        
+    }
 
-
+    /**
+    * Function that scannes for bluetooth devices, until in finds the one we have specified.
+    * If the uuid and name of a scanned device matches the one we defined, we stop the scan
+    * and try to connect to the device.
+    **/
     scanAndConnect() {
-        // Start to scan for devices
+        var kynWearUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
+        var kynWearName = 'kynWear'
+
+        // Start to scan for all devices
         this.manager.startDeviceScan(null, null, (error, device) => {
-            this.setState({info: 'Scanning...'})
             // NOTE: Debugging
-            console.log(this.state.info)
+            console.log('Scanning...')
             console.log(device);
 
+            // If errors happen in the initail period of the scan
             if (error) {
                 console.log("ERROR_CODE: " + error.code)
                 console.log("ERROR_MESSAGE: " + error.message)
             }
 
-            if (device.uuid === '9D0C0030-EF59-4E11-928C-DDAD1E82DBAB') {
-                this.setState({info: 'Connecting to device with uuid: ' + device.uuid})
+            // Checks if the uuid and name for a scanned device match the onces we are looking for
+            if (device.uuid === kynWearUUID && device.name === kynWearName) {
+                // Stop the scan for additional devices
                 this.manager.stopDeviceScan()
-                console.log(this.state.info)
 
-                this.manager.connectToDevice(device.uuid)
+                // Connects to the device, and returns a promise with the device if connected successfully
+                device.connect().then(function(result) {
+                    // Promise was fulfilled
+                    console.log('We are connected to the device with name: ' + result.name + ' and uuid: ' + result.uuid)
+                    result.isConnected().then(function(result) {
+                        // Promise was fulfilled
+                        console.log('We connected to the device? ' + result);
+                    }, function(error) {
+                        // Promise was rejected
+                        console.log('There was an error checking if device is connected: ' + error)
+                    })
+
+                    result.discoverAllServicesAndCharacteristics().then(function(result) {
+                        // Promise was fulfilled
+                        console.log(result)
+                    }, function(error) {
+                        // Promise was rejected
+                        console.log(error)
+                    })
+                }, function(error) {
+                    // Promise was rejected
+                    console.log('There was an error connecting to the device: ' + error)
+                })
             }
-
-            // var connection = this.manager.isDeviceConnected(device.uuid)
-            // console.log('Is device connected? ' + connection)
-
-            // Returns a JS Promise, that we can then handle 
-            this.manager.isDeviceConnected(device.uuid).then(function(result) {
-                console.log(result)
-            })
         })
     }
 
