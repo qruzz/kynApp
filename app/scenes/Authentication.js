@@ -144,7 +144,7 @@ export default class Authentication extends Component {
                                 console.log(result);
                                 // var characteristicUUID = result.get('uuid')
                                 // console.log(characteristicUUID);
-                                var value = Buffer.from('74653421', 'hex').toString('base64')
+                                var value = Buffer.from('buttocks', 'ascii').toString('base64')
                                 device.writeCharacteristicWithoutResponseForService(kynWearServiceUUID, characteristicUUID, value).then(function(result) {
                                     // Promise was fulfilled
                                     console.log('FUCKING SUCCESS!!!!')
