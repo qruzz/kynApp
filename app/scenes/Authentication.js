@@ -12,6 +12,7 @@ import Dashboard from './Dashboard'
 import { firebaseApp } from '../../index.ios.js'
 import { Actions } from 'react-native-router-flux'
 import { BleManager } from 'react-native-ble-plx'
+import { Buffer } from 'buffer'
 
 export default class Authentication extends Component {
     constructor(props) {
@@ -95,6 +96,7 @@ export default class Authentication extends Component {
         // Real
         // var kynWearUUID = 'A68F54B9-A343-48F8-9590-90382FB4FEF6'
         var kynWearServiceUUID = '713d0000-503e-4c75-ba94-3148f18d941e'
+        var characteristicUUID = '713d0003-503e-4c75-ba94-3148f18d941e'
 
         // Other
         var kynWearUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
@@ -139,15 +141,28 @@ export default class Authentication extends Component {
                             device.characteristicsForService(kynWearServiceUUID).then(function(result) {
                                 // Promise was fulfilled
 
-                                device.writeCharacteristicWithResponseForService(kynWearServiceUUID, kynWearServiceUUID, 'A').then(function(result) {
+                                console.log(result);
+                                // var characteristicUUID = result.get('uuid')
+                                // console.log(characteristicUUID);
+                                var value = Buffer.from('74653421', 'hex').toString('base64')
+                                device.writeCharacteristicWithoutResponseForService(kynWearServiceUUID, characteristicUUID, value).then(function(result) {
                                     // Promise was fulfilled
+                                    console.log('FUCKING SUCCESS!!!!')
 
-                                    console.log(result);
+                                    // device.monitorCharacteristicForService(kynWearServiceUUID, characteristicUUID, (error, characteristic) => {
+                                    //     if (error) {
+                                    //         console.log(error);
+                                    //     }
+                                    //
+                                    //     // this.updateValue(characteristicUUID, value)
+                                    // })
+
+                                    // device.cancelConnection()
+
                                 }, function(error) {
                                     console.log(error);
                                 })
 
-                                console.log(result);
                             }, function(error) {
                                 console.log(error);
                             })
@@ -156,32 +171,10 @@ export default class Authentication extends Component {
                             console.log(error);
                         })
 
-                        // result.read().then(function(result) {
-                        //     // Promise was fulfilled
-                        //     console.log('We have read the characteristics')
-                        //     console.log(result)
-                        // }, function(error) {
-                        //     // Promise was rejected
-                        //     console.log('There was an errror reading the characteristics:' + error)
-                        // })
                     }, function(error) {
                         // Promise was rejected
                         console.log('There was an error discovering all the characteristics for the device: ' + error)
                     })
-
-                    // result.characteristicsForService(kynWearServiceUUID).then(function(result) {
-                    //     // Promise was fulfilled
-                    //     console.log('The characteristics for the service is:')
-                    //     console.log(result)
-                    // }, function(error) {
-                    //     console.log(error)
-                    // })
-
-                    // device.writeCharacteristicWithResponseForService(kynWearServiceUUID, kynWearUUID, 'AQ==').then(function(result) {
-                    //     console.log(result);
-                    // }, function(error) {
-                    //     console.log(error);
-                    // })
 
                 }, function(error) {
                     // Promise was rejected
