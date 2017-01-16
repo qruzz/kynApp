@@ -40,18 +40,64 @@ export default class Authentication extends Component {
         }
     }
 
-    writeInterests() {
-        
+    /**
+    * Function that writes data to the connected device.
+    * @param Object {<Device>}
+    **/
+    async writeInterests(device) {
+        const service = this.serviceUUID(id)
+        const characteristicW = this.writeUUID(id)
+        const characteristicN = this.notifyUUID(id)
+
+        const characteristic = await device.writeCharacteristicWithResponseForService(
+            service, characteristicW, "AQ==" /* 0x01 in hex */
+        )
+
+        device.monitorCharacteristicForService(service, characteristicN, (error, characteristic) => {
+            if (error) {
+                this.error(error.message)
+                return
+            }
+            this.updateValue(characteristic.uuid, characteristic.value)
+        })
+
+        this.disconnectFromDevice(device)
+    }
+
+    /**
+    * Function that disconnects the phone from the bluetooth device and handles
+    * the promises that follows.
+    * @param Object {<Device>}
+    **/
+    disconnectFromDevice(device) {
+        device.cancelConnection().then(function(result) {
+            // Promise was fulfilled
+            console.log('We have canceled the connection to the device with the uuid: ' + device.uuid)
+            result.isConnected().then(function(result) {
+                // Promise was fulfilled
+                console.log('So we still connected to the device? ' + result)
+            }, function(error) {
+                // Promise was rejected
+                console.log('There was an error checking for connection: ' + error);
+            })
+        }, function(error) {
+            // Promise was rejected
+            console.log('There was an error disconnectiong from the device: ' + error)
+        })
     }
 
     /**
     * Function that scannes for bluetooth devices, until in finds the one we have specified.
-    * If the uuid and name of a scanned device matches the one we defined, we stop the scan
+    * If the uuid of a scanned device matches the one we defined, we stop the scan
     * and try to connect to the device.
     **/
     scanAndConnect() {
+        // Real
+        // var kynWearUUID = 'A68F54B9-A343-48F8-9590-90382FB4FEF6'
+        var kynWearServiceUUID = '713d0000-503e-4c75-ba94-3148f18d941e'
+
+        // Other
         var kynWearUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
-        var kynWearName = 'kynWear'
 
         // Start to scan for all devices
         this.manager.startDeviceScan(null, null, (error, device) => {
@@ -65,18 +111,17 @@ export default class Authentication extends Component {
                 console.log("ERROR_MESSAGE: " + error.message)
             }
 
-            // Checks if the uuid and name for a scanned device match the onces we are looking for
-            if (device.uuid === kynWearUUID && device.name === kynWearName) {
+            // Checks if the uuid for a scanned device match the once we are looking for
+            if (device.uuid === kynWearUUID) {
                 // Stop the scan for additional devices
                 this.manager.stopDeviceScan()
 
-                // Connects to the device, and returns a promise with the device if connected successfully
                 device.connect().then(function(result) {
                     // Promise was fulfilled
-                    console.log('We are connected to the device with name: ' + result.name + ' and uuid: ' + result.uuid)
+                    console.log('We are connected to the device with uuid: ' + result.uuid)
                     result.isConnected().then(function(result) {
                         // Promise was fulfilled
-                        console.log('We connected to the device? ' + result);
+                        console.log('So we are really connected to the device? ' + result)
                     }, function(error) {
                         // Promise was rejected
                         console.log('There was an error checking if device is connected: ' + error)
@@ -84,11 +129,60 @@ export default class Authentication extends Component {
 
                     result.discoverAllServicesAndCharacteristics().then(function(result) {
                         // Promise was fulfilled
+                        console.log('The characteristics for the device is:')
                         console.log(result)
+
+                        result.services().then(function(result) {
+                            // Promise was fulfilled
+                            console.log(result);
+
+                            device.characteristicsForService(kynWearServiceUUID).then(function(result) {
+                                // Promise was fulfilled
+
+                                device.writeCharacteristicWithResponseForService(kynWearServiceUUID, kynWearServiceUUID, 'A').then(function(result) {
+                                    // Promise was fulfilled
+
+                                    console.log(result);
+                                }, function(error) {
+                                    console.log(error);
+                                })
+
+                                console.log(result);
+                            }, function(error) {
+                                console.log(error);
+                            })
+
+                        }, function(error) {
+                            console.log(error);
+                        })
+
+                        // result.read().then(function(result) {
+                        //     // Promise was fulfilled
+                        //     console.log('We have read the characteristics')
+                        //     console.log(result)
+                        // }, function(error) {
+                        //     // Promise was rejected
+                        //     console.log('There was an errror reading the characteristics:' + error)
+                        // })
                     }, function(error) {
                         // Promise was rejected
-                        console.log(error)
+                        console.log('There was an error discovering all the characteristics for the device: ' + error)
                     })
+
+                    // result.characteristicsForService(kynWearServiceUUID).then(function(result) {
+                    //     // Promise was fulfilled
+                    //     console.log('The characteristics for the service is:')
+                    //     console.log(result)
+                    // }, function(error) {
+                    //     console.log(error)
+                    // })
+
+                    // device.writeCharacteristicWithResponseForService(kynWearServiceUUID, kynWearUUID, 'AQ==').then(function(result) {
+                    //     console.log(result);
+                    // }, function(error) {
+                    //     console.log(error);
+                    // })
+
                 }, function(error) {
                     // Promise was rejected
                     console.log('There was an error connecting to the device: ' + error)
