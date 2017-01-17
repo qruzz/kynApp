@@ -11,8 +11,6 @@ import ViewContainer from '../components/ViewContainer'
 import Dashboard from './Dashboard'
 import { firebaseApp } from '../../index.ios.js'
 import { Actions } from 'react-native-router-flux'
-import { BleManager } from 'react-native-ble-plx'
-import { Buffer } from 'buffer'
 
 export default class Authentication extends Component {
     constructor(props) {
@@ -21,171 +19,11 @@ export default class Authentication extends Component {
         this.state = {
             email: '',
             password: '',
-            info: ''
+            status: ''
         }
-
-        // Instansiate a new Bluetooth manager
-        this.manager = new BleManager()
-    }
-
-    componentWillMount() {
-        // In ios, we need to wait for a state change before we can scan for devices
-        if (Platform.OS === 'ios') {
-            // If the platform is ios, we wait for the state to change before scanning
-            this.manager.onStateChange((state) => {
-                this.scanAndConnect()
-            })
-        } else {
-            // In Android, we can just start the scan
-            this.scanAndConnect()
-        }
-    }
-
-    /**
-    * Function that writes data to the connected device.
-    * @param Object {<Device>}
-    **/
-    async writeInterests(device) {
-        const service = this.serviceUUID(id)
-        const characteristicW = this.writeUUID(id)
-        const characteristicN = this.notifyUUID(id)
-
-        const characteristic = await device.writeCharacteristicWithResponseForService(
-            service, characteristicW, "AQ==" /* 0x01 in hex */
-        )
-
-        device.monitorCharacteristicForService(service, characteristicN, (error, characteristic) => {
-            if (error) {
-                this.error(error.message)
-                return
-            }
-            this.updateValue(characteristic.uuid, characteristic.value)
-        })
-
-        this.disconnectFromDevice(device)
-    }
-
-    /**
-    * Function that disconnects the phone from the bluetooth device and handles
-    * the promises that follows.
-    * @param Object {<Device>}
-    **/
-    disconnectFromDevice(device) {
-        device.cancelConnection().then(function(result) {
-            // Promise was fulfilled
-            console.log('We have canceled the connection to the device with the uuid: ' + device.uuid)
-            result.isConnected().then(function(result) {
-                // Promise was fulfilled
-                console.log('So we still connected to the device? ' + result)
-            }, function(error) {
-                // Promise was rejected
-                console.log('There was an error checking for connection: ' + error);
-            })
-        }, function(error) {
-            // Promise was rejected
-            console.log('There was an error disconnectiong from the device: ' + error)
-        })
-    }
-
-    /**
-    * Function that scannes for bluetooth devices, until in finds the one we have specified.
-    * If the uuid of a scanned device matches the one we defined, we stop the scan
-    * and try to connect to the device.
-    **/
-    scanAndConnect() {
-        // Real
-        // var kynWearUUID = 'A68F54B9-A343-48F8-9590-90382FB4FEF6'
-        var kynWearServiceUUID = '713d0000-503e-4c75-ba94-3148f18d941e'
-        var characteristicUUID = '713d0003-503e-4c75-ba94-3148f18d941e'
-
-        // Other
-        var kynWearUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
-
-        // Start to scan for all devices
-        this.manager.startDeviceScan(null, null, (error, device) => {
-            // NOTE: Debugging
-            console.log('Scanning...')
-            console.log(device);
-
-            // If errors happen in the initail period of the scan
-            if (error) {
-                console.log("ERROR_CODE: " + error.code)
-                console.log("ERROR_MESSAGE: " + error.message)
-            }
-
-            // Checks if the uuid for a scanned device match the once we are looking for
-            if (device.uuid === kynWearUUID) {
-                // Stop the scan for additional devices
-                this.manager.stopDeviceScan()
-
-                device.connect().then(function(result) {
-                    // Promise was fulfilled
-                    console.log('We are connected to the device with uuid: ' + result.uuid)
-                    result.isConnected().then(function(result) {
-                        // Promise was fulfilled
-                        console.log('So we are really connected to the device? ' + result)
-                    }, function(error) {
-                        // Promise was rejected
-                        console.log('There was an error checking if device is connected: ' + error)
-                    })
-
-                    result.discoverAllServicesAndCharacteristics().then(function(result) {
-                        // Promise was fulfilled
-                        console.log('The characteristics for the device is:')
-                        console.log(result)
-
-                        result.services().then(function(result) {
-                            // Promise was fulfilled
-                            console.log(result);
-
-                            device.characteristicsForService(kynWearServiceUUID).then(function(result) {
-                                // Promise was fulfilled
-
-                                console.log(result);
-                                // var characteristicUUID = result.get('uuid')
-                                // console.log(characteristicUUID);
-                                var value = Buffer.from('buttocks', 'ascii').toString('base64')
-                                device.writeCharacteristicWithoutResponseForService(kynWearServiceUUID, characteristicUUID, value).then(function(result) {
-                                    // Promise was fulfilled
-                                    console.log('FUCKING SUCCESS!!!!')
-
-                                    // device.monitorCharacteristicForService(kynWearServiceUUID, characteristicUUID, (error, characteristic) => {
-                                    //     if (error) {
-                                    //         console.log(error);
-                                    //     }
-                                    //
-                                    //     // this.updateValue(characteristicUUID, value)
-                                    // })
-
-                                    // device.cancelConnection()
-
-                                }, function(error) {
-                                    console.log(error);
-                                })
-
-                            }, function(error) {
-                                console.log(error);
-                            })
-
-                        }, function(error) {
-                            console.log(error);
-                        })
-
-                    }, function(error) {
-                        // Promise was rejected
-                        console.log('There was an error discovering all the characteristics for the device: ' + error)
-                    })
-
-                }, function(error) {
-                    // Promise was rejected
-                    console.log('There was an error connecting to the device: ' + error)
-                })
-            }
-        })
     }
 
     render() {
-
         return (
             <ViewContainer>
                 <View style={styles.welcome}>
@@ -219,36 +57,36 @@ export default class Authentication extends Component {
     }
 
     /**
-    * Function that handles onPress event from sign up button and creates a user
-    * in Firebase with the entered email and password.
+     * Function that handles onPress event from sign up button and creates a user
+     * in Firebase with the entered email and password.
     **/
     _signUp() {
-        firebaseApp.auth().createUserWithEmailAndPassword(this.state.email, this.state.password).catch(function(error) {
-            // Handle errors here
-            console.log(error.code)
-            console.log(error.message)
-        })
-        // NOTE: Debugging
-        console.log('Signed up')
+        firebaseApp.auth().createUserWithEmailAndPassword(this.state.email, this.state.password).then(function(error) {
+            // Promise was fulfilled
 
-        this._login()
+            // Call the login function
+            this._login()
+        }, function(error) {
+            // Promise was rejected
+            console.log(error)
+        })
     }
 
     /**
-    * Function that handles onPress event from sign up button and logs in user
-    * already authorised, with the entered email and password.
+     * Function that handles onPress event from sign up button and logs in user
+     * already authorised, with the entered email and password.
     **/
     _login() {
-        firebaseApp.auth().signInWithEmailAndPassword(this.state.email, this.state.password).catch(function(error) {
-            // Handle errors here
-            // NOTE: Debugging
-            console.log(error.code)
-            console.log(error.message)
+        firebaseApp.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(function() {
+            // Promise was fulfilled
+
+            // Push the new scene on top of the navigation stack, and clears the input fields
+            Actions.dashboard()
+        }, function(error) {
+            console.log(error);
         })
-        // Push the new scene on top of the navigation stack, and clears the input fields
-        // NOTE: Debugging
-        console.log('Logged in')
-        Actions.dashboard()
+
+        // Reset the email and password state
         this.setState({email: ''})
         this.setState({password: ''})
     }

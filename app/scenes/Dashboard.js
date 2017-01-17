@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, PropTypes } from 'react'
 import {
     AppRegistry,
     StyleSheet,
@@ -6,12 +6,23 @@ import {
     View,
     ListView,
     TouchableOpacity,
-    TextInput
+    TextInput,
+    Platform
 } from 'react-native'
 import StatusbarBackground from '../components/StatusbarBackground'
 import ViewContainer from '../components/ViewContainer'
 import ListItem from '../components/ListItem'
 import { firebaseApp } from '../../index.ios.js'
+import { BleManager } from 'react-native-ble-plx'
+import { Buffer } from 'buffer'
+import { scanAndConnect } from '../services/ble-functions.js'
+
+var interestToWrite = ''
+
+// Global constant holding the UUID of the connection device
+// const deviceUUID = 'A68F54B9-A343-48F8-9590-90382FB4FEF6'
+// Other
+const deviceUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
 
 export default class kyn extends Component {
     constructor(props) {
@@ -28,6 +39,22 @@ export default class kyn extends Component {
             input: '',
             userUID: '',
             dataSource: ds.cloneWithRows(['row 1', 'row 2'])
+        }
+
+        // Instansiate a new Bluetooth manager
+        this.manager = new BleManager()
+    }
+
+    componentWillMount() {
+        // In ios, we need to wait for a state change before we can scan for devices
+        if (Platform.OS === 'ios') {
+            // If the platform is ios, we wait for the state to change before scanning
+            this.manager.onStateChange((state) => {
+                scanAndConnect(this.manager, deviceUUID)
+            })
+        } else {
+            // In Android, we can just start the scan
+            scanAndConnect(this.manager, deviceUUID)
         }
     }
 
@@ -101,11 +128,15 @@ export default class kyn extends Component {
     * with the values of interest and userUID set in state, to the database.
     **/
     _addInterest() {
-        this.itemsRef.push({
-            interest: this.state.input,
-            userUID: this.state.userUID
-        })
-        this.setState({input: ''})
+        if (this.state.input) {
+            this.itemsRef.push({
+                interest: this.state.input,
+                userUID: this.state.userUID
+            })
+
+            interestToWrite = this.state.input
+            this.setState({input: ''})
+        }
     }
 
     /**
