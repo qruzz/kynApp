@@ -21,12 +21,6 @@ export const firebaseApp = firebase.initializeApp(firebaseConfig)
 export default class kyn extends Component {
     constructor(props) {
         super(props)
-
-        // const manager = new BleManager()
-        // const uuid = '75023A9074F94CCD95B0967E742282D0'
-        //
-        // manager.startDeviceScan(uuid)
-        // console.log(manager)
     }
 
     render() {

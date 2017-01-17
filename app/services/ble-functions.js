@@ -11,7 +11,7 @@ export function scanForDevices(manager, deviceUUID) {
     manager.startDeviceScan(null, null, (error, device) => {
         // NOTE: Debugging
         console.log('Scanning...')
-        console.log(device);
+        console.log(device)
 
         // If errors happen in the initail period of the scan
         if (error) {
@@ -31,7 +31,9 @@ export function scanForDevices(manager, deviceUUID) {
 export function connect(manager, device, value) {
     // The constants containing the UUIDs of the service and characterisic to write to
     const kynWearServiceUUID = '713d0000-503e-4c75-ba94-3148f18d941e'
-    const characteristicUUID = '713d0000-503e-4c75-ba94-3148f18d941e'
+    const characteristicUUID = '713d0003-503e-4c75-ba94-3148f18d941e'
+
+    console.log('In connect function, before connecting')
 
     // Connect to the specified device
     manager.connectToDevice(device).then(function(result) {
@@ -115,7 +117,7 @@ export function writeInterests(device, serviceUUID, characteristicUUID, value) {
 
         // Cancel connection to the device after write
         device.cancelConnection()
-        
+
     }, function(error) {
         // Promise was rejected
 

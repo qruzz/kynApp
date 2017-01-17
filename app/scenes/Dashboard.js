@@ -17,14 +17,15 @@ import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
 import { scanForDevices, connect } from '../services/ble-functions.js'
 
+// Global variable that stores the interest that should be written to the MCU
 var interestToWrite = ''
 
 // Global constant holding the UUID of the connection device
-// const deviceUUID = 'A68F54B9-A343-48F8-9590-90382FB4FEF6'
+const deviceUUID = 'A68F54B9-A343-48F8-9590-90382FB4FEF6'
 // Other
-const deviceUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
+// const deviceUUID = 'AF3A392B-A3BD-4502-6C4C-7EB2F763CFB5'
 
-export default class kyn extends Component {
+export default class Dashboard extends Component {
     constructor(props) {
         super(props)
 
@@ -41,7 +42,7 @@ export default class kyn extends Component {
             dataSource: ds.cloneWithRows(['row 1', 'row 2'])
         }
 
-        // Instansiate a new Bluetooth manager
+        // // Instansiate a new Bluetooth manager
         this.manager = new BleManager()
     }
 
@@ -54,7 +55,7 @@ export default class kyn extends Component {
             })
         } else {
             // In Android, we can just start the scan
-            scanForDevices(this.manager, deviceUUID, interestToWrite)
+            scanForDevices(this.manager, deviceUUID)
         }
     }
 
@@ -72,8 +73,6 @@ export default class kyn extends Component {
             if (user) {
                 var userUID = firebaseApp.auth().currentUser.uid
                 this.setState({userUID: userUID})
-                // NOTE: Debugging
-                // console.log('Firebase user UID from auth from auth: ' + userUID)
             }
         })
     }
@@ -82,13 +81,6 @@ export default class kyn extends Component {
         return (
             <ViewContainer>
                 <StatusbarBackground />
-                <View style={styles.button}>
-                    <TouchableOpacity
-                        style={styles.buttonContainer}
-                        onPress={() => connect(this.manager, deviceUUID, interestToWrite)}>
-                        <Text>sync</Text>
-                    </TouchableOpacity>
-                </View>
 
                 <View style={styles.input}>
                     <TextInput
@@ -105,7 +97,15 @@ export default class kyn extends Component {
                         onPress={this._addInterest.bind(this)}>
                         <Text style={styles.buttonText}>add</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.buttonContainerSync}
+                        onPress={() => connect(this.manager, deviceUUID, interestToWrite)}>
+                        <Text style={styles.buttonText}>sync</Text>
+                    </TouchableOpacity>
                 </View>
+
+                <View style={styles.seperator}></View>
+
                 <ListView
                     dataSource={this.state.dataSource}
                     renderRow={this._renderRow}
@@ -203,12 +203,20 @@ const styles = StyleSheet.create({
         height: 50,
         overflow: 'hidden',
         borderRadius: 30,
+        marginBottom: 10
+    },
+    buttonContainerSync: {
+        backgroundColor: '#E9E9E9',
+        height: 50,
+        overflow: 'hidden',
+        borderRadius: 30
     },
     buttonText: {
         textAlign: 'center',
         padding: 15
-
+    },
+    seperator: {
+        height: 1,
+        backgroundColor: '#C5C5C5'
     }
 });
-
-AppRegistry.registerComponent('kyn', () => kyn);
