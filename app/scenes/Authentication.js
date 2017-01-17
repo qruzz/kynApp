@@ -4,8 +4,7 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    TouchableOpacity,
-    Platform
+    TouchableOpacity
 } from 'react-native'
 import ViewContainer from '../components/ViewContainer'
 import Dashboard from './Dashboard'
@@ -33,12 +32,16 @@ export default class Authentication extends Component {
                     <TextInput
                         style={styles.input}
                         placeholder="email"
+                        autoCapitalize="none"
+                        autoCorrect={false}
                         onChangeText={(input) => this.setState({email: input})}
                         value={this.state.email}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="password"
+                        autoCapitalize="none"
+                        autoCorrect={false}
                         onChangeText={(input) => this.setState({password: input})}
                         value={this.state.password}
                         secureTextEntry={true}

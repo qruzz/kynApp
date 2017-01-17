@@ -15,7 +15,7 @@ import ListItem from '../components/ListItem'
 import { firebaseApp } from '../../index.ios.js'
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
-import { scanAndConnect } from '../services/ble-functions.js'
+import { scanForDevices, connect } from '../services/ble-functions.js'
 
 var interestToWrite = ''
 
@@ -50,11 +50,11 @@ export default class kyn extends Component {
         if (Platform.OS === 'ios') {
             // If the platform is ios, we wait for the state to change before scanning
             this.manager.onStateChange((state) => {
-                scanAndConnect(this.manager, deviceUUID)
+                scanForDevices(this.manager, deviceUUID)
             })
         } else {
             // In Android, we can just start the scan
-            scanAndConnect(this.manager, deviceUUID)
+            scanForDevices(this.manager, deviceUUID, interestToWrite)
         }
     }
 
@@ -76,13 +76,20 @@ export default class kyn extends Component {
                 // console.log('Firebase user UID from auth from auth: ' + userUID)
             }
         })
-
     }
 
     render() {
         return (
             <ViewContainer>
                 <StatusbarBackground />
+                <View style={styles.button}>
+                    <TouchableOpacity
+                        style={styles.buttonContainer}
+                        onPress={() => connect(this.manager, deviceUUID, interestToWrite)}>
+                        <Text>sync</Text>
+                    </TouchableOpacity>
+                </View>
+
                 <View style={styles.input}>
                     <TextInput
                         style={styles.inputField}
@@ -135,6 +142,7 @@ export default class kyn extends Component {
             })
 
             interestToWrite = this.state.input
+            console.log(interestToWrite)
             this.setState({input: ''})
         }
     }
